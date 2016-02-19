@@ -8,7 +8,7 @@ machine:
     - docker
 
   environment:
-    - GLIB_VERSION=2.23
+    GLIB_VERSION: "2.23"
 
 dependencies:
   cache_directories:
