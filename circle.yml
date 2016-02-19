@@ -1,0 +1,39 @@
+machine:
+  timezone:
+    America/New_York
+  python:
+    version: 2.7.9
+
+  services:
+    - docker
+
+  environment:
+    - GLIB_VERSION=2.23
+
+dependencies:
+  cache_directories:
+    - ~/ghrelease
+
+  pre:
+    - | 
+      if [ ! -d ~/ghrelease ]; then 
+        (
+          cd ~
+          wget https://github.com/aktau/github-release/releases/download/v0.6.2/linux-amd64-github-release.tar.bz2
+          rm -rf ghrelease && mkdir ghrelease && tar -xjvf linux-amd64-github-release.tar.bz2 -C ghrelease
+        )
+      fi
+      cp -R ~/ghrelease/bin/linux/amd64/github-release $HOME/bin/
+
+test:
+  pre:
+    - docker build -t grovo/glibc-builder .
+
+  override:
+    - docker run --rm -e STDOUT=1 grovo/glibc-builder "$GLIB_VERSION" /usr/glibc-compat > glibc-bin.tar.gz
+
+deployment:
+  ci:
+    branch: master
+    commands:
+      - cp docker cp "glibc-binary:/glibc-bin-$GLIB_VERSION.tar.gz" $CIRCLE_ARTIFACTS
